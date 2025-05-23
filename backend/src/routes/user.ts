@@ -5,6 +5,8 @@ import mongoose from "mongoose";
 import { z } from "zod";
 import { Request, Response } from "express";
 import { Router } from "express";
+import { JWT_SECRET } from "../utils";
+import { authMiddleware } from "../authMiddleware";
 
 
 
@@ -49,4 +51,39 @@ userRouter.post("/signup",async (req: any , res: any) => {
 })
 
 
+userRouter.post("/signin",async (req: Request , res: Response) => {
 
+    
+    const { username , password } = req.body;
+
+    const user = await User.findOne({
+        username,
+        password
+    });
+
+    if (user){
+        const token = jwt.sign({
+            id: user._id
+        }, JWT_SECRET as string)
+
+        res.json({
+            token
+        })
+    }
+
+    else{
+        res.status(403).json({
+            message: "wrong credentials"
+        })
+    }
+
+})
+
+
+userRouter.post("/data", authMiddleware, (req,res) => {
+
+
+    res.json({
+        message: "auth verified"
+    })
+})
